@@ -15,23 +15,46 @@ Plataforma web para que estudiantes universitarios gestionen su trayectoria acad
 
 ## Tabla de contenidos
 
-- [Descripción](#descripción)
-- [Funcionalidades](#funcionalidades)
-- [Roles y permisos](#roles-y-permisos)
-- [Stack tecnológico](#stack-tecnológico)
-- [Modelo de datos](#modelo-de-datos)
-- [Enumeraciones](#enumeraciones)
-- [Reglas de negocio](#reglas-de-negocio)
-- [Arquitectura del proyecto](#arquitectura-del-proyecto)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Comandos útiles](#comandos-útiles)
-- [Pruebas y calidad de código](#pruebas-y-calidad-de-código)
-- [Desarrollo asistido por IA](#desarrollo-asistido-por-ia)
-- [Decisiones pendientes](#decisiones-pendientes)
-- [Hoja de ruta](#hoja-de-ruta)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
+- [UniTrack](#unitrack)
+  - [Tabla de contenidos](#tabla-de-contenidos)
+  - [Descripción](#descripción)
+  - [Funcionalidades](#funcionalidades)
+    - [Usuario regular](#usuario-regular)
+    - [Usuario administrador](#usuario-administrador)
+  - [Roles y permisos](#roles-y-permisos)
+    - [Usuario regular](#usuario-regular-1)
+    - [Usuario administrador](#usuario-administrador-1)
+    - [Ejemplo de Policy](#ejemplo-de-policy)
+  - [Stack tecnológico](#stack-tecnológico)
+  - [📅 Calendario con FullCalendar](#-calendario-con-fullcalendar)
+    - [Opciones de implementación](#opciones-de-implementación)
+    - [Características del calendario](#características-del-calendario)
+  - [Modelo de datos](#modelo-de-datos)
+    - [Diagrama entidad-relación](#diagrama-entidad-relación)
+    - [Relaciones](#relaciones)
+    - [Relaciones Eloquent principales](#relaciones-eloquent-principales)
+  - [Enumeraciones](#enumeraciones)
+  - [Reglas de negocio](#reglas-de-negocio)
+    - [Evaluaciones](#evaluaciones)
+    - [Estado de entrega](#estado-de-entrega)
+    - [Estado de la materia](#estado-de-la-materia)
+    - [Horarios](#horarios)
+    - [Períodos](#períodos)
+  - [Arquitectura del proyecto](#arquitectura-del-proyecto)
+  - [Requisitos](#requisitos)
+  - [Instalación](#instalación)
+    - [1. Clonar el repositorio](#1-clonar-el-repositorio)
+    - [2. Instalar dependencias](#2-instalar-dependencias)
+    - [3. Configurar el entorno](#3-configurar-el-entorno)
+    - [4. Base de datos y almacenamiento](#4-base-de-datos-y-almacenamiento)
+    - [5. Levantar el entorno de desarrollo](#5-levantar-el-entorno-de-desarrollo)
+  - [Comandos útiles](#comandos-útiles)
+  - [Pruebas y calidad de código](#pruebas-y-calidad-de-código)
+  - [Desarrollo asistido por IA](#desarrollo-asistido-por-ia)
+  - [Decisiones pendientes](#decisiones-pendientes)
+  - [Hoja de ruta](#hoja-de-ruta)
+  - [Contribución](#contribución)
+  - [Licencia](#licencia)
 
 ---
 
@@ -164,6 +187,23 @@ public function delete(User $user, Subject $subject): bool
 | Entorno local | Laravel Herd (Windows/macOS) o Laravel Sail (Docker) |
 
 ---
+
+## 📅 Calendario con FullCalendar
+
+El calendario de tareas y actividades se implementará con **FullCalendar.js**, integrado con Filament PHP 5.
+
+### Opciones de implementación
+
+1. **`filament-fullcalendar`** (recomendado): Paquete oficial de Filament para FullCalendar.
+2. **Integración manual**: Componente Livewire personalizado con FullCalendar.js.
+
+### Características del calendario
+
+- Vista mensual, semanal y diaria.
+- Mostrar tareas pendientes y entregadas.
+- Filtrar por materia, tipo de actividad y estado.
+- Colores diferenciados por tipo de actividad.
+- Click en evento para ver detalles o editar.
 
 ## Modelo de datos
 
