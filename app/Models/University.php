@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Database\Factories\UniversityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -24,6 +26,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['name', 'acronym', 'location', 'website', 'email', 'phone', 'created_by'])]
 class University extends Model
 {
+    /** @use HasFactory<UniversityFactory> */
+    use HasFactory;
+
     /**
      * @return BelongsToMany<User, $this>
      */
