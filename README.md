@@ -233,7 +233,7 @@ erDiagram
         text bio "nullable"
         string avatar_path "nullable"
         enum sex "male, female"
-        enum role "admin, regular"
+        string role "admin, student"
         string email UK
         string password
     }
@@ -377,7 +377,7 @@ Los valores se almacenan en inglés (`snake_case`) y se muestran traducidos en l
 
 | Enum | Valor almacenado → Etiqueta |
 |------|-----------------------------|
-| `Role` | `admin` → Administrador · `regular` → Estudiante |
+| `Role` | `admin` → Administrador · `student` → Estudiante |
 | `Sex` | `male` → Hombre · `female` → Mujer |
 | `CareerStatus` | `in_progress` → En curso · `graduated` → Graduado · `withdrawn` → Retirado · `paused` → Pausado |
 | `PeriodType` | `annual` → Año · `quarterly` → Trimestre · `semester` → Semestre |
