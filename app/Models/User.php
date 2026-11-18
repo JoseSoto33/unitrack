@@ -54,6 +54,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsToMany(University::class)->withTimestamps();
     }
 
+    /**
+     * @return BelongsToMany<Career, $this>
+     */
+    public function careers(): BelongsToMany
+    {
+        return $this->belongsToMany(Career::class)
+            ->withPivot(['status', 'started_at', 'finished_at'])
+            ->withTimestamps();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

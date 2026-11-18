@@ -343,6 +343,8 @@ erDiagram
 **Notas de diseño**
 
 - El estado de una carrera (`en curso`, `graduado`, etc.) depende del estudiante, no de la carrera. Por eso se guarda en la tabla pivote `career_user` y no en `careers`.
+- El título de una carrera es único dentro de cada universidad (`unique(['university_id', 'title'])`); el mismo título puede existir en universidades distintas.
+- La inscripción en `career_user` se crea con estado `in_progress` por defecto.
 - `user_id` se repite en `periods`, `subjects`, `activities` y `schedules`. Aunque podría deducirse a través de las relaciones, tenerlo directamente simplifica las comprobaciones de propiedad en las Policies y los filtros por usuario.
 - La consistencia se valida al guardar: el `user_id` de una actividad o de un horario debe coincidir con el `user_id` de su materia.
 - Las claves foráneas de los registros del estudiante usan `cascadeOnDelete()`. Al eliminar un usuario o una materia, se eliminan también sus registros dependientes.
