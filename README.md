@@ -219,7 +219,6 @@ erDiagram
     CAREERS ||--o{ PERIODS : "tiene"
     USERS ||--o{ PERIODS : "registra"
     PERIODS ||--o{ SUBJECTS : "contiene"
-    USERS ||--o{ SUBJECTS : "registra"
     SUBJECTS ||--o{ ACTIVITIES : "tiene"
     USERS ||--o{ ACTIVITIES : "registra"
     SUBJECTS ||--o{ SCHEDULES : "se dicta en"
@@ -284,7 +283,6 @@ erDiagram
 
     SUBJECTS {
         bigint id PK
-        bigint user_id FK
         bigint period_id FK
         string name
         string professor "nullable"
@@ -333,7 +331,7 @@ erDiagram
 | Carrera → Período | 1:N | `periods.career_id` |
 | Usuario → Período | 1:N | `periods.user_id` |
 | Período → Materia | 1:N | `subjects.period_id` |
-| Usuario → Materia | 1:N | `subjects.user_id` |
+| Usuario → Materia | 1:N (transitiva) | A través de `subjects.period_id` → `periods.user_id` |
 | Materia → Actividad | 1:N | `activities.subject_id` |
 | Usuario → Actividad | 1:N | `activities.user_id` |
 | Materia → Horario | 1:N | `schedules.subject_id` |
@@ -344,8 +342,8 @@ erDiagram
 - El estado de una carrera (`en curso`, `graduado`, etc.) depende del estudiante, no de la carrera. Por eso se guarda en la tabla pivote `career_user` y no en `careers`.
 - El título de una carrera es único dentro de cada universidad (`unique(['university_id', 'title'])`); el mismo título puede existir en universidades distintas.
 - La inscripción en `career_user` se crea con estado `in_progress` por defecto.
-- `user_id` se repite en `periods`, `subjects`, `activities` y `schedules`. Aunque podría deducirse a través de las relaciones, tenerlo directamente simplifica las comprobaciones de propiedad en las Policies y los filtros por usuario.
-- La consistencia se valida al guardar: el `user_id` de una actividad o de un horario debe coincidir con el `user_id` de su materia.
+- `user_id` se repite en `periods`, `activities` y `schedules` para simplificar las comprobaciones de propiedad y los filtros por usuario. En `subjects` no existe: el propietario se obtiene por transitividad a través del período (`subject.period.user_id`).
+- La consistencia se valida al guardar: el `user_id` de una actividad o de un horario debe coincidir con el usuario propietario de su materia (vía período).
 - Las claves foráneas de los registros del estudiante usan `cascadeOnDelete()`. Al eliminar un usuario o una materia, se eliminan también sus registros dependientes.
 
 ### Relaciones Eloquent principales
@@ -365,7 +363,6 @@ public function careers(): BelongsToMany
 }
 
 public function periods(): HasMany    { return $this->hasMany(Period::class); }
-public function subjects(): HasMany   { return $this->hasMany(Subject::class); }
 public function activities(): HasMany { return $this->hasMany(Activity::class); }
 public function schedules(): HasMany  { return $this->hasMany(Schedule::class); }
 ```
@@ -437,8 +434,8 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 
 ### Estado de la materia
 
-- Si `final_grade ≥ min_passing_grade`, la materia puede marcarse como **aprobada**. En caso contrario, como **reprobada**.
-- El estado puede actualizarse manualmente o sugerirse automáticamente al registrar la nota final.
+- Si `final_grade ≥ min_passing_grade`, la materia queda **aprobada**; en caso contrario, **reprobada**.
+- Al registrar o cambiar la nota final (o la mínima aprobatoria con nota final presente), el estado se actualiza **automáticamente**. Sin nota final, el estado se edita manualmente.
 
 ### Horarios
 
