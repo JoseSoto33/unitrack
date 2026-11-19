@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\PeriodType;
+use Database\Factories\PeriodFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -23,6 +25,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['user_id', 'career_id', 'type', 'number', 'starts_on', 'ends_on', 'is_current'])]
 class Period extends Model
 {
+    /** @use HasFactory<PeriodFactory> */
+    use HasFactory;
+
     /**
      * @return array<string, string>
      */
