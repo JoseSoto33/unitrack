@@ -134,7 +134,7 @@ La autorización se implementa con **Policies** de Laravel. Las Policies se apli
 | Usuarios | ✅ | ✅ | ✅ | ✅ |
 | Universidades | ✅ | ✅ | ✅ | ✅ |
 | Carreras (catálogo) | ✅ | ✅ | ✅ | ✅ |
-| Períodos | ✅ | ✅ | Solo propios | Solo propios |
+| Períodos | Solo propios | ✅ | Solo propios | Solo propios |
 | Materias | ✅ | ✅ | Solo propias | Solo propias |
 | Actividades | ✅ | ✅ | Solo propias | Solo propias |
 | Horarios | ✅ | ✅ | Solo propios | Solo propios |
@@ -275,7 +275,6 @@ erDiagram
         bigint id PK
         bigint user_id FK
         bigint career_id FK
-        smallint year
         enum type "annual, quarterly, semester"
         tinyint number "1, 2, 3..."
         date starts_on
@@ -449,7 +448,8 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 
 ### Períodos
 
-- Cada usuario puede tener **un único período activo** (`is_current = true`) por carrera.
+- Cada usuario (estudiante o administrador) crea y gestiona **sus propios períodos**; nadie puede ver ni gestionar los períodos de otro usuario.
+- Cada usuario puede tener **un único período activo** (`is_current = true`) por carrera. Al marcar un período como activo, el anterior activo de esa misma carrera se desactiva automáticamente.
 - El horario y el calendario muestran por defecto el período activo.
 
 ---
@@ -649,7 +649,7 @@ Las guías propias del proyecto se añaden en `.ai/guidelines/`.
 ## Decisiones pendientes
 
 - [ ] **Nombre oficial** del proyecto.
-- [ ] **Catálogo de períodos:** ¿los crea cada estudiante, o el administrador publica un calendario académico por universidad y el estudiante lo selecciona?
+- [x] **Catálogo de períodos:** resuelto (2026-11-19) — no hay catálogo publicado por el administrador; cada usuario (estudiante o admin) crea y gestiona sus propios períodos, sin campo `year` y con fechas de inicio/fin propias.
 - [ ] **Carreras:** ¿el estudiante solo puede elegir carreras del catálogo, o también puede proponer carreras nuevas para que el administrador las apruebe?
 - [ ] **Escala de notas:** ¿se define por materia (`max_grade`) o por universidad?
 - [ ] **Opciones de sexo:** confirmar si se mantienen solo las opciones actuales (hombre, mujer).
