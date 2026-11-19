@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Enums\SubjectModality;
 use App\Enums\SubjectStatus;
+use Database\Factories\SubjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -36,6 +38,9 @@ use Illuminate\Support\Carbon;
 ])]
 class Subject extends Model
 {
+    /** @use HasFactory<SubjectFactory> */
+    use HasFactory;
+
     /**
      * @return array<string, string>
      */
