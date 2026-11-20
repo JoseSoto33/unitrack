@@ -73,6 +73,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Period::class);
     }
 
+    /**
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
