@@ -299,11 +299,11 @@ erDiagram
         bigint user_id FK
         bigint subject_id FK
         string title
-        enum type
+        enum type "exam, midterm, quiz, workshop, presentation, report, essay, debate, discussion, other"
         enum modality "individual, pair, group"
         date assigned_on
         datetime due_at
-        datetime submitted_at "nullable"
+        datetime delivered_at "nullable"
         decimal percentage
         decimal net_value
         decimal grade "nullable"
@@ -428,9 +428,9 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 
 | Condición | Estado |
 |-----------|--------|
-| `submitted_at` tiene valor | Entregada |
-| `submitted_at` es nulo y `due_at` es futuro | Pendiente |
-| `submitted_at` es nulo y `due_at` ya pasó | Vencida |
+| `delivered_at` tiene valor | Entregada |
+| `delivered_at` es nulo y `due_at` es futuro | Pendiente |
+| `delivered_at` es nulo y `due_at` ya pasó | Vencida |
 
 ### Estado de la materia
 
