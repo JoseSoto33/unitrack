@@ -14,6 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityForm
@@ -25,11 +26,11 @@ class ActivityForm
                 Select::make('subject_id')
                     ->label('Materia')
                     ->options(fn (): array => Subject::query()
-                        ->where('user_id', Filament::auth()->id())
+                        ->whereHas('period', fn (Builder $query) => $query->where('user_id', Filament::auth()->id()))
                         ->pluck('name', 'id')
                         ->all())
                     ->in(fn (): array => Subject::query()
-                        ->where('user_id', Filament::auth()->id())
+                        ->whereHas('period', fn (Builder $query) => $query->where('user_id', Filament::auth()->id()))
                         ->pluck('id')
                         ->all())
                     ->required()
