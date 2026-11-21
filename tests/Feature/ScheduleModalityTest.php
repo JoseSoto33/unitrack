@@ -30,6 +30,27 @@ test('hybrid subjects require a modality per day', function () {
         ->assertHasFormErrors();
 });
 
+test('class day modality is required for every subject', function () {
+    $admin = User::factory()->admin()->create();
+    $period = Period::factory()->for($admin)->create();
+    $subject = Subject::factory()->for($period)->create(['modality' => SubjectModality::InPerson]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(CreateSchedule::class)
+        ->fillForm([
+            'subject_id' => $subject->id,
+            'classDays' => [
+                [
+                    'day_of_week' => DayOfWeek::Monday->value,
+                    'timeRanges' => [['starts_at' => '07:00', 'ends_at' => '08:00']],
+                ],
+            ],
+        ])
+        ->call('create')
+        ->assertHasFormErrors();
+});
+
 test('hybrid subjects can have different modalities on different days', function () {
     $admin = User::factory()->admin()->create();
     $period = Period::factory()->for($admin)->create();
@@ -63,7 +84,7 @@ test('hybrid subjects can have different modalities on different days', function
         ->and($wednesday->effective_modality)->toBe(SubjectModality::Online);
 });
 
-test('non hybrid days inherit the subject modality and ignore injected values', function () {
+test('class day modality is stored as chosen', function () {
     $admin = User::factory()->admin()->create();
     $period = Period::factory()->for($admin)->create();
     $subject = Subject::factory()->for($period)->create(['modality' => SubjectModality::InPerson]);
@@ -87,6 +108,6 @@ test('non hybrid days inherit the subject modality and ignore injected values', 
 
     $day = ClassDay::query()->first();
 
-    expect($day->modality)->toBeNull()
-        ->and($day->effective_modality)->toBe(SubjectModality::InPerson);
+    expect($day->modality)->toBe(SubjectModality::Online)
+        ->and($day->effective_modality)->toBe(SubjectModality::Online);
 });

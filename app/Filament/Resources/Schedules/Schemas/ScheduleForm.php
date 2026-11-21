@@ -6,11 +6,11 @@ use App\Enums\DayOfWeek;
 use App\Enums\SubjectModality;
 use App\Models\Subject;
 use App\Models\TimeRange;
+use App\Support\TimeSlots;
 use Closure;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,6 +22,7 @@ class ScheduleForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Select::make('subject_id')
                     ->label('Materia')
@@ -50,22 +51,27 @@ class ScheduleForm
                                 SubjectModality::InPerson->value => SubjectModality::InPerson->getLabel(),
                                 SubjectModality::Online->value => SubjectModality::Online->getLabel(),
                             ])
-                            ->placeholder('Hereda de la materia')
-                            ->disabled(fn (Get $get): bool => ! self::subjectIsHybrid($get))
-                            ->required(fn (Get $get): bool => self::subjectIsHybrid($get))
+                            ->required()
                             ->in([SubjectModality::InPerson->value, SubjectModality::Online->value]),
                         Repeater::make('timeRanges')
                             ->label('Rangos de hora')
                             ->relationship()
                             ->schema([
-                                TimePicker::make('starts_at')
+                                Select::make('starts_at')
                                     ->label('Inicio')
-                                    ->required(),
-                                TimePicker::make('ends_at')
+                                    ->options(TimeSlots::options())
+                                    ->in(TimeSlots::values())
+                                    ->required()
+                                    ->searchable(),
+                                Select::make('ends_at')
                                     ->label('Fin')
-                                    ->required(),
+                                    ->options(TimeSlots::options())
+                                    ->in(TimeSlots::values())
+                                    ->required()
+                                    ->searchable(),
                             ])
                             ->columns(2)
+                            ->columnSpanFull()
                             ->defaultItems(1)
                             ->addActionLabel('Añadir rango')
                             ->rule(fn (Get $get, ?Model $record): Closure => self::validateRanges($get, $record)),
@@ -75,17 +81,6 @@ class ScheduleForm
                     ->addActionLabel('Añadir día')
                     ->rule(fn (): Closure => self::validateDistinctDays()),
             ]);
-    }
-
-    private static function subjectIsHybrid(Get $get): bool
-    {
-        $subjectId = $get('../../subject_id');
-
-        if (! $subjectId) {
-            return false;
-        }
-
-        return Subject::query()->find((int) $subjectId)?->modality === SubjectModality::Hybrid;
     }
 
     private static function validateDistinctDays(): Closure
