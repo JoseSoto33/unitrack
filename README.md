@@ -104,8 +104,8 @@ La aplicación tiene dos tipos de usuario:
 - Gestión de universidades.
 - Gestión del catálogo de carreras universitarias.
 - Gestión de materias, actividades y horarios (con las restricciones de propiedad descritas en [Roles y permisos](#roles-y-permisos)).
-- Consulta de los horarios de los usuarios regulares.
-- Consulta del calendario de actividades de los usuarios regulares.
+- Cuadro de horario semanal propio (matriz de días × horas en tramos de 30 minutos, con modalidad por bloque y actualización automática).
+- Calendario de actividades propias (pendiente de implementación).
 
 ---
 
@@ -135,9 +135,9 @@ La autorización se implementa con **Policies** de Laravel. Las Policies se apli
 | Universidades | ✅ | ✅ | ✅ | ✅ |
 | Carreras (catálogo) | ✅ | ✅ | ✅ | ✅ |
 | Períodos | Solo propios | ✅ | Solo propios | Solo propios |
-| Materias | ✅ | ✅ | Solo propias | Solo propias |
-| Actividades | ✅ | ✅ | Solo propias | Solo propias |
-| Horarios | ✅ | ✅ | Solo propios | Solo propios |
+| Materias | Solo propias | ✅ | Solo propias | Solo propias |
+| Actividades | Solo propias | ✅ | Solo propias | Solo propias |
+| Horarios | Solo propios | ✅ | Solo propios | Solo propios |
 | Calendarios | ✅ (todos) | — | — | — |
 
 > **Regla general de propiedad:** un registro solo puede ser modificado o eliminado por el usuario que lo creó (`user_id`). La única excepción son las universidades, las carreras del catálogo y los usuarios, que el administrador gestiona por completo.
@@ -313,6 +313,7 @@ erDiagram
         bigint id PK
         bigint user_id FK
         bigint subject_id FK
+        enum modality "in_person, online (nullable, hereda de la materia)"
         tinyint day_of_week "1 = lunes ... 7 = domingo"
         time starts_at
         time ends_at
@@ -440,7 +441,10 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 ### Horarios
 
 - `ends_at` debe ser posterior a `starts_at`.
-- Un mismo usuario no puede tener dos bloques que se solapen el mismo día dentro del mismo período.
+- Un mismo usuario no puede tener dos bloques que se solapen el mismo día dentro del mismo período. Los bloques adyacentes (fin = inicio del siguiente) sí se permiten.
+- Una materia puede tener bloques en **varios días** y **varios turnos no solapados el mismo día**.
+- La modalidad de un bloque (`modality`) es opcional: si se omite, hereda la de la materia. En materias **híbridas** cada bloque concreta su modalidad (presencial u online), pudiendo alternar entre días.
+- El «Cuadro de horario» del panel muestra la matriz semanal del período seleccionado (por defecto el activo): días en columnas y tramos de 30 minutos en filas, con los bloques pintados según su duración y modalidad.
 - Las vistas diaria, semanal y mensual se generan repitiendo los bloques semanales entre `periods.starts_on` y `periods.ends_on`.
 
 ### Períodos
