@@ -55,7 +55,7 @@ class ScheduleGrid extends Page
     }
 
     /**
-     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>>}
+     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>>, invalid: bool}
      */
     #[Computed]
     public function grid(): array
@@ -66,12 +66,12 @@ class ScheduleGrid extends Page
         $windowEnd = Carbon::parse(filled($this->toTime) ? $this->toTime : '17:00')->setSeconds(0);
 
         if ($windowEnd <= $windowStart) {
-            $windowEnd = $windowStart->copy()->addHour();
+            return ['slots' => [], 'days' => $days, 'cells' => [], 'invalid' => true];
         }
 
         $slots = [];
 
-        for ($cursor = $windowStart->copy(); $cursor < $windowEnd; $cursor->addMinutes(30)) {
+        for ($cursor = $windowStart->copy(); $cursor < $windowEnd; $cursor->addMinutes(15)) {
             $slots[] = $cursor->format('H:i');
         }
 
@@ -98,7 +98,7 @@ class ScheduleGrid extends Page
                         continue;
                     }
 
-                    $span = (int) (($visibleTo->getTimestamp() - $visibleFrom->getTimestamp()) / 1800);
+                    $span = (int) (($visibleTo->getTimestamp() - $visibleFrom->getTimestamp()) / 900);
                     $slot = $visibleFrom->format('H:i');
 
                     $cells[$day][$slot] = [
@@ -110,12 +110,12 @@ class ScheduleGrid extends Page
                     ];
 
                     for ($i = 1; $i < $span; $i++) {
-                        $cells[$day][$visibleFrom->copy()->addMinutes(30 * $i)->format('H:i')] = 'covered';
+                        $cells[$day][$visibleFrom->copy()->addMinutes(15 * $i)->format('H:i')] = 'covered';
                     }
                 }
             }
         }
 
-        return ['slots' => $slots, 'days' => $days, 'cells' => $cells];
+        return ['slots' => $slots, 'days' => $days, 'cells' => $cells, 'invalid' => false];
     }
 }

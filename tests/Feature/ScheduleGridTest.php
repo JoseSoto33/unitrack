@@ -39,7 +39,7 @@ test('the grid defaults to the current period and shows own blocks', function ()
         ->assertSee('07:30');
 });
 
-test('the grid renders every half hour row of the configured window even without blocks', function () {
+test('the grid renders every quarter hour row of the configured window even without blocks', function () {
     $admin = User::factory()->admin()->create();
     Period::factory()->for($admin)->current()->create();
 
@@ -49,9 +49,24 @@ test('the grid renders every half hour row of the configured window even without
         ->set('fromTime', '08:00')
         ->set('toTime', '10:00')
         ->assertSee('08:00')
+        ->assertSee('08:15')
         ->assertSee('08:30')
-        ->assertSee('09:00')
+        ->assertSee('08:45')
         ->assertSee('09:30');
+});
+
+test('the grid rejects a window whose start is equal to or after its end', function () {
+    $admin = User::factory()->admin()->create();
+    Period::factory()->for($admin)->current()->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(ScheduleGrid::class)
+        ->set('fromTime', '10:00')
+        ->set('toTime', '10:00')
+        ->assertSee('La hora de inicio debe ser anterior a la hora final')
+        ->set('toTime', '09:00')
+        ->assertSee('La hora de inicio debe ser anterior a la hora final');
 });
 
 test('the grid uses equal width bordered columns and the required cell typography', function () {
