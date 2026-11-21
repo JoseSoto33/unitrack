@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Saade\FilamentFullCalendar\Contracts\Eventable;
+use Saade\FilamentFullCalendar\Data\EventData;
 
 /**
  * @property int $id
@@ -40,10 +42,23 @@ use Illuminate\Support\Carbon;
     'percentage',
     'grade',
 ])]
-class Activity extends Model
+class Activity extends Model implements Eventable
 {
     /** @use HasFactory<ActivityFactory> */
     use HasFactory;
+
+    public const TYPE_COLORS = [
+        'exam' => '#dc2626',
+        'midterm' => '#ea580c',
+        'quiz' => '#ca8a04',
+        'workshop' => '#16a34a',
+        'presentation' => '#0d9488',
+        'report' => '#2563eb',
+        'essay' => '#7c3aed',
+        'debate' => '#db2777',
+        'discussion' => '#0891b2',
+        'other' => '#6b7280',
+    ];
 
     /**
      * @return array<string, string>
@@ -103,5 +118,22 @@ class Activity extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function toCalendarEvent(): EventData
+    {
+        return EventData::make()
+            ->id($this->getKey())
+            ->title($this->title.' — '.$this->subject->name)
+            ->start($this->due_at)
+            ->end($this->due_at)
+            ->color(self::TYPE_COLORS[$this->type->value])
+            ->extendedProps([
+                'type' => $this->type->getLabel(),
+                'subject' => $this->subject->name,
+                'status' => $this->delivery_status,
+                'percentage' => $this->percentage,
+                'grade' => $this->grade,
+            ]);
     }
 }
