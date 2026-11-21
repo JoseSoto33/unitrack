@@ -456,11 +456,11 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 
 - Un horario (`schedules`) pertenece a un usuario y una materia; sus días (`class_days`) y rangos de hora (`time_ranges`) cuelgan en cascada.
 - Una materia puede verse en **varios días** y cada día admite **varios rangos de hora**; el mismo día no puede repetirse dentro de un horario.
-- Cada rango debe durar **al menos 30 minutos** y terminar después de empezar.
+- Cada rango debe durar **al menos 30 minutos** y terminar después de empezar. Las horas se eligen de **franjas de 15 minutos** (00, 15, 30, 45) en formato 12h con AM/PM.
 - En un mismo día no puede haber dos rangos iguales ni ningún inicio o fin que caiga dentro de otro rango. Los rangos adyacentes (fin = inicio del siguiente) sí se permiten.
 - Un mismo usuario no puede tener rangos solapados el mismo día dentro del mismo período, aunque sean de materias distintas.
-- La modalidad de un día (`class_days.modality`) es opcional: si se omite, hereda la de la materia. En materias **híbridas** cada día concreta su modalidad (presencial u online), pudiendo alternar entre días.
-- El «Cuadro de horario» del panel muestra la matriz semanal del período seleccionado (por defecto el activo): días en columnas de igual ancho, filas cada 30 minutos dentro de una ventana de horas configurable (desde/hasta), celdas con bordes y bloques en columna flexible (materia a 1rem, modalidad a 12px). Se actualiza automáticamente cada 5 segundos.
+- La modalidad de un día (`class_days.modality`) es **obligatoria** (presencial u online); en materias híbridas puede alternar entre días.
+- El «Cuadro de horario» del panel muestra la matriz semanal del período seleccionado (por defecto el activo): días en columnas de igual ancho, filas cada **15 minutos** dentro de una ventana de horas configurable (desde/hasta, franjas de 15 minutos en AM/PM; el inicio debe ser anterior al fin), celdas con bordes y bloques en columna flexible (materia a 1rem, modalidad a 12px). Se actualiza automáticamente cada 5 segundos.
 - Las vistas diaria, semanal y mensual se generan repitiendo los bloques semanales entre `periods.starts_on` y `periods.ends_on`.
 
 ### Períodos
