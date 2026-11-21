@@ -190,20 +190,22 @@ public function delete(User $user, Subject $subject): bool
 
 ## 📅 Calendario con FullCalendar
 
-El calendario de tareas y actividades se implementará con **FullCalendar.js**, integrado con Filament PHP 5.
+El calendario de tareas y actividades se implementa con **FullCalendar.js**, integrado con Filament PHP 5.
 
 ### Opciones de implementación
 
-1. **`filament-fullcalendar`** (recomendado): Paquete oficial de Filament para FullCalendar.
-2. **Integración manual**: Componente Livewire personalizado con FullCalendar.js.
+1. **`saade/filament-fullcalendar` v5** (elegida): paquete compatible con Filament 4/5, registrado como plugin del panel; el tema del panel importa su stylesheet.
+2. **Integración manual**: componente Livewire personalizado con FullCalendar.js (descartada).
 
 ### Características del calendario
 
-- Vista mensual, semanal y diaria.
-- Mostrar tareas pendientes y entregadas.
-- Filtrar por materia, tipo de actividad y estado.
-- Colores diferenciados por tipo de actividad.
-- Click en evento para ver detalles o editar.
+- Página «Calendario» (`/admin/activity-calendar`, grupo «Académico») con el widget `ActivityCalendarWidget`.
+- Vista mensual, semanal y diaria; tramos de 15 minutos en las vistas de tiempo; locale español.
+- Eventos propios del rango visible, fechados por su fecha límite (`due_at`).
+- Filtrar por materia, tipo de actividad y estado de entrega (entregada/pendiente/vencida).
+- Colores diferenciados por tipo de actividad (paleta de 10 colores en `Activity::TYPE_COLORS`).
+- Click en evento para ver detalles en un modal (infolist); la edición se hace desde el recurso de actividades.
+- Solo actividades propias (propiedad estricta, sin excepción de admin).
 
 ## Modelo de datos
 
