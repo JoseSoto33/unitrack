@@ -93,7 +93,7 @@ La aplicación tiene dos tipos de usuario:
   - Fecha de asignación, fecha límite de entrega y fecha real de entrega.
   - Valor porcentual, valor neto y nota obtenida.
 - **Horarios**
-  - Bloques de clase por materia: día, hora de inicio y hora de finalización.
+  - Horario por materia: varios días de clase y, por día, varios rangos de hora de inicio y fin (mínimo 30 minutos, sin solapamientos).
 - **Visualización**
   - Calendario de actividades entregadas y pendientes.
   - Horario de clases diario, semanal y mensual de cada período.
@@ -104,8 +104,8 @@ La aplicación tiene dos tipos de usuario:
 - Gestión de universidades.
 - Gestión del catálogo de carreras universitarias.
 - Gestión de materias, actividades y horarios (con las restricciones de propiedad descritas en [Roles y permisos](#roles-y-permisos)).
-- Consulta de los horarios de los usuarios regulares.
-- Consulta del calendario de actividades de los usuarios regulares.
+- Cuadro de horario semanal propio (matriz de días × horas en tramos de 30 minutos, con modalidad por bloque y actualización automática).
+- Calendario de actividades propias (pendiente de implementación).
 
 ---
 
@@ -135,9 +135,9 @@ La autorización se implementa con **Policies** de Laravel. Las Policies se apli
 | Universidades | ✅ | ✅ | ✅ | ✅ |
 | Carreras (catálogo) | ✅ | ✅ | ✅ | ✅ |
 | Períodos | Solo propios | ✅ | Solo propios | Solo propios |
-| Materias | ✅ | ✅ | Solo propias | Solo propias |
-| Actividades | ✅ | ✅ | Solo propias | Solo propias |
-| Horarios | ✅ | ✅ | Solo propios | Solo propios |
+| Materias | Solo propias | ✅ | Solo propias | Solo propias |
+| Actividades | Solo propias | ✅ | Solo propias | Solo propias |
+| Horarios | Solo propios | ✅ | Solo propios | Solo propios |
 | Calendarios | ✅ (todos) | — | — | — |
 
 > **Regla general de propiedad:** un registro solo puede ser modificado o eliminado por el usuario que lo creó (`user_id`). La única excepción son las universidades, las carreras del catálogo y los usuarios, que el administrador gestiona por completo.
@@ -223,6 +223,8 @@ erDiagram
     USERS ||--o{ ACTIVITIES : "registra"
     SUBJECTS ||--o{ SCHEDULES : "se dicta en"
     USERS ||--o{ SCHEDULES : "registra"
+    SCHEDULES ||--o{ CLASS_DAYS : "tiene"
+    CLASS_DAYS ||--o{ TIME_RANGES : "tiene"
 
     USERS {
         bigint id PK
@@ -313,7 +315,18 @@ erDiagram
         bigint id PK
         bigint user_id FK
         bigint subject_id FK
+    }
+
+    CLASS_DAYS {
+        bigint id PK
+        bigint schedule_id FK
         tinyint day_of_week "1 = lunes ... 7 = domingo"
+        enum modality "in_person, online (nullable, hereda de la materia)"
+    }
+
+    TIME_RANGES {
+        bigint id PK
+        bigint class_day_id FK
         time starts_at
         time ends_at
     }
@@ -336,6 +349,8 @@ erDiagram
 | Usuario → Actividad | 1:N | `activities.user_id` |
 | Materia → Horario | 1:N | `schedules.subject_id` |
 | Usuario → Horario | 1:N | `schedules.user_id` |
+| Horario → Día de clase | 1:N | `class_days.schedule_id` |
+| Día de clase → Rango de hora | 1:N | `time_ranges.class_day_id` |
 
 **Notas de diseño**
 
@@ -439,8 +454,13 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 
 ### Horarios
 
-- `ends_at` debe ser posterior a `starts_at`.
-- Un mismo usuario no puede tener dos bloques que se solapen el mismo día dentro del mismo período.
+- Un horario (`schedules`) pertenece a un usuario y una materia; sus días (`class_days`) y rangos de hora (`time_ranges`) cuelgan en cascada.
+- Una materia puede verse en **varios días** y cada día admite **varios rangos de hora**; el mismo día no puede repetirse dentro de un horario.
+- Cada rango debe durar **al menos 30 minutos** y terminar después de empezar. Las horas se eligen de **franjas de 15 minutos** (00, 15, 30, 45) en formato 12h con AM/PM.
+- En un mismo día no puede haber dos rangos iguales ni ningún inicio o fin que caiga dentro de otro rango. Los rangos adyacentes (fin = inicio del siguiente) sí se permiten.
+- Un mismo usuario no puede tener rangos solapados el mismo día dentro del mismo período, aunque sean de materias distintas.
+- La modalidad de un día (`class_days.modality`) es **obligatoria** (presencial u online); en materias híbridas puede alternar entre días.
+- El «Cuadro de horario» del panel muestra la matriz semanal del período seleccionado (por defecto el activo): días en columnas de igual ancho, filas cada **15 minutos** dentro de una ventana de horas configurable (desde/hasta, franjas de 15 minutos en AM/PM; el inicio debe ser anterior al fin), celdas con bordes y bloques en columna flexible (materia a 1rem, modalidad a 12px). Se actualiza automáticamente cada 5 segundos.
 - Las vistas diaria, semanal y mensual se generan repitiendo los bloques semanales entre `periods.starts_on` y `periods.ends_on`.
 
 ### Períodos

@@ -34,7 +34,7 @@ class SubjectFactory extends Factory
             ]),
             'professor' => fake()->optional()->name(),
             'credits' => fake()->numberBetween(1, 6),
-            'modality' => fake()->randomElement(SubjectModality::cases()),
+            'modality' => SubjectModality::InPerson,
             'max_grade' => 20,
             'min_passing_grade' => 10,
             'final_grade' => null,

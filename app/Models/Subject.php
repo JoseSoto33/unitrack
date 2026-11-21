@@ -89,4 +89,12 @@ class Subject extends Model
     {
         return $this->hasMany(Activity::class);
     }
+
+    /**
+     * @return HasMany<Schedule, $this>
+     */
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }
