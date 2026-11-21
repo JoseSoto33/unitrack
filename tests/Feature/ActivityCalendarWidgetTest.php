@@ -75,6 +75,15 @@ test('the calendar filters by type and delivery status', function () {
     expect($byStatus->pluck('id')->all())->toBe([$delivered->id]);
 });
 
+test('the calendar widget renders with colored events', function () {
+    $admin = User::factory()->admin()->create();
+    Activity::factory()->for($admin)->create(['due_at' => now()->addDays(3)]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ActivityCalendarWidget::class)->assertOk();
+});
+
 test('the calendar is configured in spanish with month week and day views', function () {
     $admin = User::factory()->admin()->create();
 

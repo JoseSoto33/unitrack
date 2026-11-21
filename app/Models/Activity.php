@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ActivityModality;
 use App\Enums\ActivityType;
 use Database\Factories\ActivityFactory;
+use Filament\Support\Colors\Color;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -127,7 +128,7 @@ class Activity extends Model implements Eventable
             ->title($this->title.' — '.$this->subject->name)
             ->start($this->due_at)
             ->end($this->due_at)
-            ->color(self::TYPE_COLORS[$this->type->value])
+            ->color(Color::hex(self::TYPE_COLORS[$this->type->value]))
             ->extendedProps([
                 'type' => $this->type->getLabel(),
                 'subject' => $this->subject->name,
