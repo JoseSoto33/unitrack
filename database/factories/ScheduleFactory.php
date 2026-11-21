@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\DayOfWeek;
 use App\Models\Schedule;
 use App\Models\Subject;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,22 +24,6 @@ class ScheduleFactory extends Factory
                 ->findOrFail((int) $attributes['subject_id'])
                 ->period
                 ->user_id,
-            'day_of_week' => fake()->randomElement(DayOfWeek::cases()),
-            'modality' => null,
-            'starts_at' => '07:00',
-            'ends_at' => '08:00',
         ];
-    }
-
-    /**
-     * Set a specific day and time block.
-     */
-    public function block(int $day, string $startsAt, string $endsAt): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'day_of_week' => $day,
-            'starts_at' => $startsAt,
-            'ends_at' => $endsAt,
-        ]);
     }
 }

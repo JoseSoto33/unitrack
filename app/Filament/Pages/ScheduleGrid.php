@@ -26,6 +26,10 @@ class ScheduleGrid extends Page
 
     public ?int $periodId = null;
 
+    public string $fromTime = '07:00';
+
+    public string $toTime = '17:00';
+
     public function mount(): void
     {
         $this->periodId = Period::query()
@@ -51,46 +55,64 @@ class ScheduleGrid extends Page
     }
 
     /**
-     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, Schedule|string|null>>}
+     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>>}
      */
     #[Computed]
     public function grid(): array
     {
         $days = range(1, 7);
 
-        $blocks = Schedule::query()
-            ->where('user_id', Filament::auth()->id())
-            ->whereHas('subject', fn ($query) => $query->where('period_id', $this->periodId))
-            ->with('subject')
-            ->get();
+        $windowStart = Carbon::parse($this->fromTime)->setSeconds(0);
+        $windowEnd = Carbon::parse($this->toTime)->setSeconds(0);
 
-        if ($blocks->isEmpty()) {
-            return ['slots' => [], 'days' => $days, 'cells' => []];
+        if ($windowEnd <= $windowStart) {
+            $windowEnd = $windowStart->copy()->addHour();
         }
-
-        $first = Carbon::parse($blocks->min('starts_at'));
-        $last = Carbon::parse($blocks->max('ends_at'));
-
-        $start = $first->copy()->setTime((int) $first->format('H'), intdiv((int) $first->format('i'), 30) * 30);
-        $end = $last->copy()->setTime((int) $last->format('H'), (int) ceil((int) $last->format('i') / 30) * 30);
 
         $slots = [];
 
-        for ($cursor = $start->copy(); $cursor < $end; $cursor->addMinutes(30)) {
+        for ($cursor = $windowStart->copy(); $cursor < $windowEnd; $cursor->addMinutes(30)) {
             $slots[] = $cursor->format('H:i');
         }
 
         $cells = [];
 
-        foreach ($blocks as $block) {
-            $day = $block->day_of_week->value;
-            $from = Carbon::parse($block->starts_at);
-            $span = (int) ((strtotime($block->ends_at) - strtotime($block->starts_at)) / 1800);
+        $schedules = Schedule::query()
+            ->where('user_id', Filament::auth()->id())
+            ->whereHas('subject', fn ($query) => $query->where('period_id', $this->periodId))
+            ->with(['subject', 'classDays.timeRanges'])
+            ->get();
 
-            $cells[$day][$from->format('H:i')] = $block;
+        foreach ($schedules as $schedule) {
+            foreach ($schedule->classDays as $classDay) {
+                $day = $classDay->day_of_week->value;
 
-            for ($i = 1; $i < $span; $i++) {
-                $cells[$day][$from->copy()->addMinutes(30 * $i)->format('H:i')] = 'covered';
+                foreach ($classDay->timeRanges as $range) {
+                    $from = Carbon::parse($range->starts_at)->setSeconds(0);
+                    $to = Carbon::parse($range->ends_at)->setSeconds(0);
+
+                    $visibleFrom = $from->max($windowStart);
+                    $visibleTo = $to->min($windowEnd);
+
+                    if ($visibleFrom >= $visibleTo) {
+                        continue;
+                    }
+
+                    $span = (int) (($visibleTo->getTimestamp() - $visibleFrom->getTimestamp()) / 1800);
+                    $slot = $visibleFrom->format('H:i');
+
+                    $cells[$day][$slot] = [
+                        'subject' => $schedule->subject->name,
+                        'modality' => $classDay->effective_modality->getLabel(),
+                        'from' => $visibleFrom->format('H:i'),
+                        'to' => $visibleTo->format('H:i'),
+                        'span' => $span,
+                    ];
+
+                    for ($i = 1; $i < $span; $i++) {
+                        $cells[$day][$visibleFrom->copy()->addMinutes(30 * $i)->format('H:i')] = 'covered';
+                    }
+                }
             }
         }
 

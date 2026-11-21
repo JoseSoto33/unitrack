@@ -2,14 +2,12 @@
 
 namespace App\Filament\Resources\Schedules\Tables;
 
-use App\Enums\DayOfWeek;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,31 +18,22 @@ class SchedulesTable
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query
                 ->where('user_id', Filament::auth()->id())
-                ->with('subject'))
+                ->with(['subject', 'classDays']))
             ->columns([
                 TextColumn::make('subject.name')
                     ->label('Materia')
                     ->searchable(),
-                TextColumn::make('effective_modality')
-                    ->label('Modalidad')
+                TextColumn::make('classDays.day_of_week')
+                    ->label('Días')
                     ->badge(),
-                TextColumn::make('day_of_week')
-                    ->label('Día')
-                    ->badge()
-                    ->sortable(),
-                TextColumn::make('starts_at')
-                    ->label('Inicio')
-                    ->time()
-                    ->sortable(),
-                TextColumn::make('ends_at')
-                    ->label('Fin')
-                    ->time()
-                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('day_of_week')
-                    ->label('Día')
-                    ->options(DayOfWeek::class),
+                //
             ])
             ->recordActions([
                 EditAction::make(),
