@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Schedules\Schemas;
 
 use App\Enums\DayOfWeek;
+use App\Enums\SubjectModality;
 use App\Models\Schedule;
 use App\Models\Subject;
 use Closure;
@@ -32,7 +33,17 @@ class ScheduleForm
                         ->pluck('id')
                         ->all())
                     ->required()
-                    ->searchable(),
+                    ->searchable()
+                    ->live(),
+                Select::make('modality')
+                    ->label('Modalidad del bloque')
+                    ->options([
+                        SubjectModality::InPerson->value => SubjectModality::InPerson->getLabel(),
+                        SubjectModality::Online->value => SubjectModality::Online->getLabel(),
+                    ])
+                    ->visible(fn (Get $get): bool => self::subjectIsHybrid($get))
+                    ->required(fn (Get $get): bool => self::subjectIsHybrid($get))
+                    ->in([SubjectModality::InPerson->value, SubjectModality::Online->value]),
                 Select::make('day_of_week')
                     ->label('Día')
                     ->options(DayOfWeek::class)
@@ -75,5 +86,16 @@ class ScheduleForm
                         };
                     }),
             ]);
+    }
+
+    private static function subjectIsHybrid(Get $get): bool
+    {
+        $subjectId = $get('subject_id');
+
+        if (! $subjectId) {
+            return false;
+        }
+
+        return Subject::query()->find((int) $subjectId)?->modality === SubjectModality::Hybrid;
     }
 }

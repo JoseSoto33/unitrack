@@ -25,6 +25,9 @@ class SchedulesTable
                 TextColumn::make('subject.name')
                     ->label('Materia')
                     ->searchable(),
+                TextColumn::make('effective_modality')
+                    ->label('Modalidad')
+                    ->badge(),
                 TextColumn::make('day_of_week')
                     ->label('Día')
                     ->badge()

@@ -26,6 +26,7 @@ class ScheduleFactory extends Factory
                 ->period
                 ->user_id,
             'day_of_week' => fake()->randomElement(DayOfWeek::cases()),
+            'modality' => null,
             'starts_at' => '07:00',
             'ends_at' => '08:00',
         ];
