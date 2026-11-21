@@ -81,6 +81,7 @@ test('non hybrid days inherit the subject modality and ignore injected values', 
                 ],
             ],
         ])
+        ->assertSee('Modalidad')
         ->call('create')
         ->assertHasNoFormErrors();
 

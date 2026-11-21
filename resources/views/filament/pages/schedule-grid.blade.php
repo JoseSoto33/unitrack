@@ -11,11 +11,11 @@
             </div>
             <div class="flex flex-col gap-1">
                 <label for="fromTime" class="text-sm font-medium text-gray-700 dark:text-gray-200">Desde</label>
-                <x-filament::input id="fromTime" type="time" wire:model.live="fromTime" />
+                <x-filament::input id="fromTime" type="time" wire:model.change="fromTime" />
             </div>
             <div class="flex flex-col gap-1">
                 <label for="toTime" class="text-sm font-medium text-gray-700 dark:text-gray-200">Hasta</label>
-                <x-filament::input id="toTime" type="time" wire:model.live="toTime" />
+                <x-filament::input id="toTime" type="time" wire:model.change="toTime" />
             </div>
         </div>
 

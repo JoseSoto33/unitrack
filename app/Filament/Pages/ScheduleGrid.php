@@ -62,8 +62,8 @@ class ScheduleGrid extends Page
     {
         $days = range(1, 7);
 
-        $windowStart = Carbon::parse($this->fromTime)->setSeconds(0);
-        $windowEnd = Carbon::parse($this->toTime)->setSeconds(0);
+        $windowStart = Carbon::parse(filled($this->fromTime) ? $this->fromTime : '07:00')->setSeconds(0);
+        $windowEnd = Carbon::parse(filled($this->toTime) ? $this->toTime : '17:00')->setSeconds(0);
 
         if ($windowEnd <= $windowStart) {
             $windowEnd = $windowStart->copy()->addHour();

@@ -50,7 +50,8 @@ class ScheduleForm
                                 SubjectModality::InPerson->value => SubjectModality::InPerson->getLabel(),
                                 SubjectModality::Online->value => SubjectModality::Online->getLabel(),
                             ])
-                            ->visible(fn (Get $get): bool => self::subjectIsHybrid($get))
+                            ->placeholder('Hereda de la materia')
+                            ->disabled(fn (Get $get): bool => ! self::subjectIsHybrid($get))
                             ->required(fn (Get $get): bool => self::subjectIsHybrid($get))
                             ->in([SubjectModality::InPerson->value, SubjectModality::Online->value]),
                         Repeater::make('timeRanges')
