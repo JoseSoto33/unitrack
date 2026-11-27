@@ -55,6 +55,7 @@ test('the grid spans from the earliest start to the latest end in quarter hour r
         ->assertSee('07:15')
         ->assertSee('08:30')
         ->assertSee('16:45')
+        ->assertSee('17:00')
         ->assertDontSee('07:00')
         ->assertDontSee('06:45');
 });
@@ -72,7 +73,8 @@ test('the grid rounds the derived range outwards to quarter hours', function () 
     Livewire::test(ScheduleGrid::class)
         ->assertSee('07:00')
         ->assertSee('08:15')
-        ->assertDontSee('08:30');
+        ->assertSee('08:30')
+        ->assertDontSee('08:45');
 });
 
 test('the grid shows an empty state when the period has no blocks', function () {

@@ -114,7 +114,7 @@ class ScheduleGrid extends Page
         $max = Carbon::createFromTimestamp(max($ends));
 
         $start = $min->copy()->setTime((int) $min->format('H'), intdiv((int) $min->format('i'), 15) * 15);
-        $end = $max->copy()->setTime((int) $max->format('H'), (int) (ceil((int) $max->format('i') / 15) * 15));
+        $end = $max->copy()->setTime((int) $max->format('H'), (int) (ceil((int) $max->format('i') / 15) * 15))->addMinutes(15);
 
         return [$start, $end];
     }
