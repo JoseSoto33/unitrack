@@ -25,6 +25,7 @@ test('admins can list only their own schedules', function () {
     $this->actingAs($admin);
 
     Livewire::test(ListSchedules::class)
+        ->set('tab', 'list')
         ->assertCanSeeTableRecords($own)
         ->assertCanNotSeeTableRecords($foreign);
 });

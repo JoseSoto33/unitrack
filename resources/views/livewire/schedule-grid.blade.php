@@ -1,39 +1,22 @@
-<x-filament-panels::page>
-    <div wire:poll.5s class="flex flex-col gap-4">
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="flex flex-col gap-1">
-                <label for="periodId" class="text-sm font-medium text-gray-700 dark:text-gray-200">Período</label>
-                <x-filament::input.select id="periodId" wire:model.live="periodId" class="max-w-sm">
-                    @foreach ($this->periods as $id => $label)
-                        <option wire:key="period-{{ $id }}" value="{{ $id }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </div>
-            <div class="flex flex-col gap-1">
-                <label for="fromTime" class="text-sm font-medium text-gray-700 dark:text-gray-200">Desde</label>
-                <x-filament::input.select id="fromTime" wire:model.live="fromTime">
-                    @foreach (\App\Support\TimeSlots::options() as $value => $label)
-                        <option wire:key="from-{{ $value }}" value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </div>
-            <div class="flex flex-col gap-1">
-                <label for="toTime" class="text-sm font-medium text-gray-700 dark:text-gray-200">Hasta</label>
-                <x-filament::input.select id="toTime" wire:model.live="toTime">
-                    @foreach (\App\Support\TimeSlots::options() as $value => $label)
-                        <option wire:key="to-{{ $value }}" value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </div>
+<div wire:poll.5s class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-end gap-4">
+        <div class="flex flex-col gap-1">
+            <label for="gridPeriodId" class="text-sm font-medium text-gray-700 dark:text-gray-200">Período</label>
+            <x-filament::input.select id="gridPeriodId" wire:model.live="periodId" class="max-w-sm">
+                @foreach ($this->periods as $id => $label)
+                    <option wire:key="period-{{ $id }}" value="{{ $id }}">{{ $label }}</option>
+                @endforeach
+            </x-filament::input.select>
         </div>
+    </div>
 
-        @if ($this->grid['invalid'])
-            <x-filament::section>
-                <p class="text-sm font-medium text-danger-600 dark:text-danger-400">
-                    La hora de inicio debe ser anterior a la hora final.
-                </p>
-            </x-filament::section>
-        @else
+    @if ($this->grid['empty'])
+        <x-filament::section>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                No hay bloques de horario en este período. Agrega bloques desde «Horarios» para verlos aquí.
+            </p>
+        </x-filament::section>
+    @else
         <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-gray-900">
             <table class="w-full table-fixed border-collapse text-sm">
                 <thead>
@@ -71,6 +54,5 @@
                 </tbody>
             </table>
         </div>
-        @endif
-    </div>
-</x-filament-panels::page>
+    @endif
+</div>

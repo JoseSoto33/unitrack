@@ -462,8 +462,7 @@ El estado de entrega no se almacena; se calcula a partir de las fechas:
 - En un mismo día no puede haber dos rangos iguales ni ningún inicio o fin que caiga dentro de otro rango. Los rangos adyacentes (fin = inicio del siguiente) sí se permiten.
 - Un mismo usuario no puede tener rangos solapados el mismo día dentro del mismo período, aunque sean de materias distintas.
 - La modalidad de un día (`class_days.modality`) es **obligatoria** (presencial u online); en materias híbridas puede alternar entre días.
-- El «Cuadro de horario» del panel muestra la matriz semanal del período seleccionado (por defecto el activo): días en columnas de igual ancho, filas cada **15 minutos** dentro de una ventana de horas configurable (desde/hasta, franjas de 15 minutos en AM/PM; el inicio debe ser anterior al fin), celdas con bordes y bloques en columna flexible (materia a 1rem, modalidad a 12px). Se actualiza automáticamente cada 5 segundos.
-- Las vistas diaria, semanal y mensual se generan repitiendo los bloques semanales entre `periods.starts_on` y `periods.ends_on`.
+- La sección «Horarios» del panel tiene **dos pestañas**: «Cuadro de horario» (activa por defecto) y «Bloques agregados» (tabla con editar/eliminar); el botón de crear bloque está visible en ambas. El cuadro muestra la **matriz semanal** del período seleccionado (por defecto el activo): días en columnas de igual ancho y filas cada **15 minutos**, en un rango de horas **derivado automáticamente** desde el inicio más temprano hasta el fin más tardío de los bloques del período (redondeado a cuartos de hora y **más un intervalo de 15 minutos al final**); sin bloques, muestra un estado vacío. Celdas con bordes y bloques en columna flexible (materia a 1rem, modalidad a 12px). Se actualiza automáticamente cada 5 segundos.
 
 ### Períodos
 
