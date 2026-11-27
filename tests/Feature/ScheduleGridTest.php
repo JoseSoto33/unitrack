@@ -39,34 +39,50 @@ test('the grid defaults to the current period and shows own blocks', function ()
         ->assertSee('07:30');
 });
 
-test('the grid renders every quarter hour row of the configured window even without blocks', function () {
+test('the grid spans from the earliest start to the latest end in quarter hour rows', function () {
     $admin = User::factory()->admin()->create();
-    Period::factory()->for($admin)->current()->create();
+    $current = Period::factory()->for($admin)->current()->create();
+    $subject = Subject::factory()->for($current)->create();
+    $schedule = Schedule::factory()->for($subject)->create();
+    $monday = ClassDay::factory()->for($schedule)->create(['day_of_week' => DayOfWeek::Monday]);
+    $tuesday = ClassDay::factory()->for($schedule)->create(['day_of_week' => DayOfWeek::Tuesday]);
+    TimeRange::factory()->for($monday)->create(['starts_at' => '07:15', 'ends_at' => '08:45']);
+    TimeRange::factory()->for($tuesday)->create(['starts_at' => '16:00', 'ends_at' => '17:00']);
 
     $this->actingAs($admin);
 
     Livewire::test(ScheduleGrid::class)
-        ->set('fromTime', '08:00')
-        ->set('toTime', '10:00')
-        ->assertSee('08:00')
-        ->assertSee('08:15')
+        ->assertSee('07:15')
         ->assertSee('08:30')
-        ->assertSee('08:45')
-        ->assertSee('09:30');
+        ->assertSee('16:45')
+        ->assertDontSee('07:00')
+        ->assertDontSee('06:45');
 });
 
-test('the grid rejects a window whose start is equal to or after its end', function () {
+test('the grid rounds the derived range outwards to quarter hours', function () {
+    $admin = User::factory()->admin()->create();
+    $current = Period::factory()->for($admin)->current()->create();
+    $subject = Subject::factory()->for($current)->create();
+    $schedule = Schedule::factory()->for($subject)->create();
+    $day = ClassDay::factory()->for($schedule)->create(['day_of_week' => DayOfWeek::Monday]);
+    TimeRange::factory()->for($day)->create(['starts_at' => '07:10', 'ends_at' => '08:20']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(ScheduleGrid::class)
+        ->assertSee('07:00')
+        ->assertSee('08:15')
+        ->assertDontSee('08:30');
+});
+
+test('the grid shows an empty state when the period has no blocks', function () {
     $admin = User::factory()->admin()->create();
     Period::factory()->for($admin)->current()->create();
 
     $this->actingAs($admin);
 
     Livewire::test(ScheduleGrid::class)
-        ->set('fromTime', '10:00')
-        ->set('toTime', '10:00')
-        ->assertSee('La hora de inicio debe ser anterior a la hora final')
-        ->set('toTime', '09:00')
-        ->assertSee('La hora de inicio debe ser anterior a la hora final');
+        ->assertSee('No hay bloques de horario en este período');
 });
 
 test('the grid uses equal width bordered columns and the required cell typography', function () {

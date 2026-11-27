@@ -27,48 +27,12 @@ class ScheduleGrid extends Page
 
     public ?int $periodId = null;
 
-    public string $fromTime = '07:00';
-
-    public string $toTime = '17:00';
-
-    public string $activeView = 'week';
-
-    public string $dayDate = '';
-
-    public string $monthAnchor = '';
-
     public function mount(): void
     {
         $this->periodId = Period::query()
             ->where('user_id', Filament::auth()->id())
             ->orderByDesc('is_current')
             ->first()?->id;
-        $this->dayDate = now()->format('Y-m-d');
-        $this->monthAnchor = now()->startOfMonth()->format('Y-m-d');
-    }
-
-    public function setView(string $view): void
-    {
-        if (in_array($view, ['week', 'day', 'month'], true)) {
-            $this->activeView = $view;
-        }
-    }
-
-    public function goToDay(string $date): void
-    {
-        $this->dayDate = $date;
-        $this->monthAnchor = Carbon::parse($date)->startOfMonth()->format('Y-m-d');
-        $this->activeView = 'day';
-    }
-
-    public function previousMonth(): void
-    {
-        $this->monthAnchor = Carbon::parse($this->monthAnchor)->subMonthNoOverflow()->startOfMonth()->format('Y-m-d');
-    }
-
-    public function nextMonth(): void
-    {
-        $this->monthAnchor = Carbon::parse($this->monthAnchor)->addMonthNoOverflow()->startOfMonth()->format('Y-m-d');
     }
 
     /**
@@ -87,117 +51,26 @@ class ScheduleGrid extends Page
             ->all();
     }
 
-    #[Computed]
-    public function period(): ?Period
-    {
-        return Period::query()
-            ->where('user_id', Filament::auth()->id())
-            ->find($this->periodId);
-    }
-
     /**
-     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>>, invalid: bool}
+     * @return array{slots: list<string>, days: list<int>, cells: array<int, array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>>, empty: bool}
      */
     #[Computed]
     public function grid(): array
     {
-        $window = $this->window();
+        $schedules = $this->ownSchedules();
+        $range = $this->timeRange($schedules);
 
-        if ($window['invalid']) {
-            return ['slots' => [], 'days' => range(1, 7), 'cells' => [], 'invalid' => true];
+        if ($range === null) {
+            return ['slots' => [], 'days' => range(1, 7), 'cells' => [], 'empty' => true];
         }
 
+        [$start, $end] = $range;
+
         return [
-            'slots' => $this->slots($window['start'], $window['end']),
+            'slots' => $this->slots($start, $end),
             'days' => range(1, 7),
-            'cells' => $this->buildCells($this->ownSchedules(), range(1, 7), $window['start'], $window['end']),
-            'invalid' => false,
-        ];
-    }
-
-    /**
-     * @return array{date: string, weekday: int, inPeriod: bool, slots: list<string>, cells: array<string, array{subject: string, modality: string, from: string, to: string, span: int}|string|null>, invalid: bool}
-     */
-    #[Computed]
-    public function dayTimeline(): array
-    {
-        $date = Carbon::parse($this->dayDate)->startOfDay();
-        $window = $this->window();
-        $inPeriod = $this->dateInPeriod($date);
-        $weekday = $date->dayOfWeekIso;
-
-        $cells = [];
-
-        if ($inPeriod && ! $window['invalid']) {
-            $cells = $this->buildCells($this->ownSchedules(), [$weekday], $window['start'], $window['end'])[$weekday] ?? [];
-        }
-
-        return [
-            'date' => $date->format('Y-m-d'),
-            'weekday' => $weekday,
-            'inPeriod' => $inPeriod,
-            'slots' => $window['invalid'] ? [] : $this->slots($window['start'], $window['end']),
-            'cells' => $cells,
-            'invalid' => $window['invalid'],
-        ];
-    }
-
-    /**
-     * @return array{label: string, weeks: list<list<array{date: string, day: int, inMonth: bool, inPeriod: bool, blocks: list<array{subject: string, from: string, modality: string}>}>>}
-     */
-    #[Computed]
-    public function monthGrid(): array
-    {
-        $anchor = Carbon::parse($this->monthAnchor)->startOfMonth();
-        $byWeekday = [];
-
-        foreach ($this->ownSchedules() as $schedule) {
-            foreach ($schedule->classDays as $classDay) {
-                foreach ($classDay->timeRanges as $range) {
-                    $byWeekday[$classDay->day_of_week->value][] = [
-                        'subject' => $schedule->subject->name,
-                        'from' => Carbon::parse($range->starts_at)->format('H:i'),
-                        'modality' => $classDay->effective_modality->getLabel(),
-                    ];
-                }
-            }
-        }
-
-        foreach ($byWeekday as &$blocks) {
-            usort($blocks, fn (array $a, array $b): int => strcmp($a['from'], $b['from']));
-        }
-        unset($blocks);
-
-        $cursor = $anchor->copy()->startOfWeek(Carbon::MONDAY);
-        $last = $anchor->copy()->endOfMonth()->endOfWeek(Carbon::MONDAY);
-        $weeks = [];
-
-        while ($cursor <= $last) {
-            $week = [];
-
-            for ($i = 0; $i < 7; $i++) {
-                $date = $cursor->copy();
-                $inPeriod = $this->dateInPeriod($date);
-
-                $week[] = [
-                    'date' => $date->format('Y-m-d'),
-                    'day' => (int) $date->format('j'),
-                    'inMonth' => $date->month === $anchor->month,
-                    'inPeriod' => $inPeriod,
-                    'blocks' => $inPeriod ? ($byWeekday[$date->dayOfWeekIso] ?? []) : [],
-                ];
-
-                $cursor->addDay();
-            }
-
-            $weeks[] = $week;
-        }
-
-        $anchor->locale('es');
-
-        return [
-            'label' => $anchor->translatedFormat('F Y'),
-            'weeks' => $weeks,
+            'cells' => $this->buildCells($schedules, range(1, 7), $start, $end),
+            'empty' => false,
         ];
     }
 
@@ -213,23 +86,37 @@ class ScheduleGrid extends Page
             ->get();
     }
 
-    private function dateInPeriod(Carbon $date): bool
-    {
-        $period = $this->period();
-
-        return $period !== null
-            && $date->betweenIncluded($period->starts_on->startOfDay(), $period->ends_on->startOfDay());
-    }
-
     /**
-     * @return array{start: Carbon, end: Carbon, invalid: bool}
+     * From the earliest block start to the latest block end, rounded to quarter hours.
+     *
+     * @param  Collection<int, Schedule>  $schedules
+     * @return array{0: Carbon, 1: Carbon}|null
      */
-    private function window(): array
+    private function timeRange(Collection $schedules): ?array
     {
-        $start = Carbon::parse(filled($this->fromTime) ? $this->fromTime : '07:00')->setSeconds(0);
-        $end = Carbon::parse(filled($this->toTime) ? $this->toTime : '17:00')->setSeconds(0);
+        $starts = [];
+        $ends = [];
 
-        return ['start' => $start, 'end' => $end, 'invalid' => $end <= $start];
+        foreach ($schedules as $schedule) {
+            foreach ($schedule->classDays as $classDay) {
+                foreach ($classDay->timeRanges as $range) {
+                    $starts[] = Carbon::parse($range->starts_at)->setSeconds(0)->getTimestamp();
+                    $ends[] = Carbon::parse($range->ends_at)->setSeconds(0)->getTimestamp();
+                }
+            }
+        }
+
+        if ($starts === [] || $ends === []) {
+            return null;
+        }
+
+        $min = Carbon::createFromTimestamp(min($starts));
+        $max = Carbon::createFromTimestamp(max($ends));
+
+        $start = $min->copy()->setTime((int) $min->format('H'), intdiv((int) $min->format('i'), 15) * 15);
+        $end = $max->copy()->setTime((int) $max->format('H'), (int) (ceil((int) $max->format('i') / 15) * 15));
+
+        return [$start, $end];
     }
 
     /**
