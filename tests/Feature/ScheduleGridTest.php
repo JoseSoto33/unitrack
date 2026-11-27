@@ -1,7 +1,8 @@
 <?php
 
 use App\Enums\DayOfWeek;
-use App\Filament\Pages\ScheduleGrid;
+use App\Filament\Resources\Schedules\Pages\ListSchedules;
+use App\Livewire\ScheduleGrid;
 use App\Models\ClassDay;
 use App\Models\Period;
 use App\Models\Schedule;
@@ -10,16 +11,53 @@ use App\Models\TimeRange;
 use App\Models\User;
 use Livewire\Livewire;
 
-test('admins can view the schedule grid page', function () {
+test('admins see the grid tab by default on the schedules page', function () {
     $admin = User::factory()->admin()->create();
+    $current = Period::factory()->for($admin)->current()->create();
+    $subject = Subject::factory()->for($current)->create(['name' => 'Programación']);
+    $schedule = Schedule::factory()->for($subject)->create();
+    $day = ClassDay::factory()->for($schedule)->create(['day_of_week' => DayOfWeek::Monday]);
+    TimeRange::factory()->for($day)->create(['starts_at' => '07:00', 'ends_at' => '08:30']);
 
-    $this->actingAs($admin)->get('/admin/schedule-grid')->assertOk();
+    $this->actingAs($admin);
+
+    $this->get('/admin/schedules')
+        ->assertOk()
+        ->assertSee('Cuadro de horario')
+        ->assertSee('Bloques agregados')
+        ->assertSee('Programación');
 });
 
-test('students cannot view the schedule grid page', function () {
+test('students cannot view the schedules page', function () {
     $student = User::factory()->create();
 
-    $this->actingAs($student)->get('/admin/schedule-grid')->assertForbidden();
+    $this->actingAs($student)->get('/admin/schedules')->assertForbidden();
+});
+
+test('the create action is visible on both tabs', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(ListSchedules::class)
+        ->assertSee('Crear')
+        ->set('tab', 'list')
+        ->assertSee('Crear');
+});
+
+test('the list tab shows the blocks table', function () {
+    $admin = User::factory()->admin()->create();
+    $period = Period::factory()->for($admin)->create();
+    $subject = Subject::factory()->for($period)->create();
+    $own = Schedule::factory()->for($subject)->count(2)->create();
+    $foreign = Schedule::factory()->count(2)->create();
+
+    $this->actingAs($admin);
+
+    Livewire::test(ListSchedules::class)
+        ->set('tab', 'list')
+        ->assertCanSeeTableRecords($own)
+        ->assertCanNotSeeTableRecords($foreign);
 });
 
 test('the grid defaults to the current period and shows own blocks', function () {
@@ -39,7 +77,7 @@ test('the grid defaults to the current period and shows own blocks', function ()
         ->assertSee('07:30');
 });
 
-test('the grid spans from the earliest start to the latest end in quarter hour rows', function () {
+test('the grid spans from the earliest start to the latest end plus one quarter hour', function () {
     $admin = User::factory()->admin()->create();
     $current = Period::factory()->for($admin)->current()->create();
     $subject = Subject::factory()->for($current)->create();

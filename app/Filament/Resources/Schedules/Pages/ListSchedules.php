@@ -10,6 +10,10 @@ class ListSchedules extends ListRecords
 {
     protected static string $resource = ScheduleResource::class;
 
+    protected string $view = 'filament.resources.schedules.pages.list-schedules';
+
+    public string $tab = 'grid';
+
     protected function getHeaderActions(): array
     {
         return [

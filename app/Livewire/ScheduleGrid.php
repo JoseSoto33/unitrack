@@ -1,30 +1,18 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Livewire;
 
 use App\Models\Period;
 use App\Models\Schedule;
-use BackedEnum;
 use Filament\Facades\Filament;
-use Filament\Pages\Page;
-use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
-use UnitEnum;
+use Livewire\Component;
 
-class ScheduleGrid extends Page
+class ScheduleGrid extends Component
 {
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTableCells;
-
-    protected static ?string $navigationLabel = 'Cuadro de horario';
-
-    protected static string|UnitEnum|null $navigationGroup = 'Académico';
-
-    protected static ?string $title = 'Cuadro de horario';
-
-    protected string $view = 'filament.pages.schedule-grid';
-
     public ?int $periodId = null;
 
     public function mount(): void
@@ -74,6 +62,11 @@ class ScheduleGrid extends Page
         ];
     }
 
+    public function render(): View
+    {
+        return view('livewire.schedule-grid');
+    }
+
     /**
      * @return Collection<int, Schedule>
      */
@@ -87,7 +80,8 @@ class ScheduleGrid extends Page
     }
 
     /**
-     * From the earliest block start to the latest block end, rounded to quarter hours.
+     * From the earliest block start to the latest block end plus one quarter hour,
+     * rounded to quarter hours.
      *
      * @param  Collection<int, Schedule>  $schedules
      * @return array{0: Carbon, 1: Carbon}|null
